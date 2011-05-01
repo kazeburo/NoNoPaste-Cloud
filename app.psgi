@@ -10,6 +10,7 @@ return sub {
             (map { "<tr><td>$_</td><td>$env->{$_}</td></tr>\n" }
                 grep { /^HTTP_/ }
                 keys %$env),
+            "<tr><td>INC</td><td>", join(":", @INC), "</td></tr>",
             "</table></body></html>"
         ],
     ]
