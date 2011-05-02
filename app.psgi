@@ -6,4 +6,3 @@ use NoNoPaste;
 
 NoNoPaste->psgi();
 
-
