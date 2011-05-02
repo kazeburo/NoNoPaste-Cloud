@@ -25,6 +25,7 @@ requires 'Text::Xslate', 0.1044;
 requires 'HTML::FillInForm::Lite', 1.09;
 requires 'Cwd';
 requires 'File::Basename';
+requires 'File::HomeDir';
 
 requires 'DBI';
 requires 'DBD::SQLite', 1.25;
