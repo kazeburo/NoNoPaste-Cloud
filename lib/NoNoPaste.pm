@@ -6,6 +6,8 @@ use Path::Class;
 use File::HomeDir;
 use Digest::SHA;
 use NoNoPaste::Data;
+use DateTime;
+use DateTime::Format::Strptime;
 
 our $VERSION = 0.01;
 
@@ -38,6 +40,11 @@ EOF
     return;
 };
 
+my $DTFMT = DateTime::Format::Strptime->new(
+    time_zone => 'UTC',
+    pattern   => '%Y-%m-%d %H:%M:%S',
+);
+
 sub data {
     my $self = shift;
     my $db_path = Path::Class::file( $self->root_dir, "nonopaste.db" );
@@ -62,12 +69,21 @@ sub add_entry {
     $nick = 'anonymouse' if ! defined $nick;
     my $id = substr Digest::SHA::sha1_hex($$ . join("\0", @_) . rand(1000) ), 0, 16;
 
+    my $datetime = DateTime->now( time_zone=>'UTC' ); #XXX
     my $row = $self->data->add_entry(
         id => $id,
         nick => $nick,
         body => $body,
+        datetime => $DTFMT->format_datetime($datetime),
     );
     return ( $row ) ? $id : 0;
+}
+
+sub fixdt {
+    my $date = shift;
+    my $dt = $DTFMT->parse_datetime($date);
+    $dt->set_time_zone("Asia/Tokyo"); #XXX
+    $DTFMT->format_datetime($dt);
 }
 
 sub entry_list {
@@ -78,14 +94,20 @@ sub entry_list {
    my $next;
    $next = pop @$rows if @$rows > 10;
 
+   $_->{ctime} = fixdt($_->{ctime}) for @$rows;
+   
    return $rows, $next;
 }
 
 sub retrieve_entry {
    my $self = shift;
    my $id = shift;
-   $self->data->retrieve_entry( id => $id );
+   my $row = $self->data->retrieve_entry( id => $id );
+   return unless $row;
+   $row->{ctime} = fixdt($row->{ctime});
+   $row;
 }
+
 
 get '/' => sub {
     my ( $self, $c )  = @_;

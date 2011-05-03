@@ -12,18 +12,13 @@ subtype 'Uint'
     
 no Mouse::Util::TypeConstraints;
 
-sub now {
-    my @lt = localtime;
-    sprintf "%04d-%02d-%02d %02d:%02d:%02d",
-        $lt[5]+1900, $lt[4]+1, $lt[3], $lt[2], $lt[1], $lt[0];
-}
 
 __PACKAGE__->query(
     'add_entry',
     id => 'Str',
     nick => { isa => 'Str', default => 'anonymouse' },
     body => 'Str',
-    datetime => { isa => 'Str', default => \&now },
+    datetime => 'Str',
     q{INSERT INTO entries ( id, nick, body, ctime ) values ( ?, ?, ?, ? )},
 );
 
