@@ -11,7 +11,9 @@ our $VERSION = 0.01;
 
 my $_on_connect = sub {
     my $connect = shift;
-    $connect->do(<<EOF);
+    my $dsn = $connect->connect_info->[0];
+    if ($dsn =~ /^(?i:dbi):SQLite:/) {
+        $connect->do(<<EOF);
 CREATE TABLE IF NOT EXISTS entries (
     id VARCHAR(255) NOT NULL PRIMARY KEY,
     nick VARCHAR(255) NOT NULL,
@@ -19,6 +21,17 @@ CREATE TABLE IF NOT EXISTS entries (
     ctime DATETIME NOT NULL
 )
 EOF
+    }
+    else {
+        $connect->do(<<EOF);
+CREATE TABLE IF NOT EXISTS entries (
+    id VARCHAR(255) NOT NULL PRIMARY KEY,
+    nick VARCHAR(255) NOT NULL,
+    body TEXT,
+    ctime DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+EOF
+    }
     $connect->do(<<EOF);
 CREATE INDEX IF NOT EXISTS index_ctime ON entries ( ctime )
 EOF
@@ -27,9 +40,14 @@ EOF
 
 sub data {
     my $self = shift;
-    my $db_path = Path::Class::file( File::HomeDir->my_home, "nonopaste.db" );
+    my $db_path = Path::Class::file( $self->root_dir, "nonopaste.db" );
+    my $dsn = ["dbi:SQLite:dbname=$db_path", '', '',];
+    my $config_pl = Path::Class::file( File::HomeDir->my_home, "nonopaste_config.pl" );
+    if ( -f $config_pl ) {
+        $dsn = do $config_pl;
+    }
     local $Scope::Container::DBI::DBI_CLASS = 'DBIx::Sunny'; 
-    my $dbh = Scope::Container::DBI->connect( "dbi:SQLite:dbname=$db_path", '', '', {
+    my $dbh = Scope::Container::DBI->connect(@$dsn, {
         Callbacks => {
             connected => $_on_connect,
         },

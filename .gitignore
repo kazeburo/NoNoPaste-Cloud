@@ -9,3 +9,5 @@ nytprof.out
 MANIFEST.bak
 *.sw[po]
 *~
+nonopaste.db
+

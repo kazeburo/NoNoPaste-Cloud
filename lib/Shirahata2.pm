@@ -69,8 +69,8 @@ sub psgi {
             enable 'Access', rules => \@rule;
         }
         enable 'Static',
-            path => qr{^/(favicon\.ico$|static/)},
-            root =>Path::Class::dir($self->{root_dir}, 'htdocs')->stringify;
+            path => sub { s!^/static/!! },
+            root =>Path::Class::dir($self->{root_dir}, 'static')->stringify;
         enable 'Scope::Container';
         $app;
     };
