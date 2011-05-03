@@ -29,6 +29,7 @@ requires 'File::HomeDir';
 
 requires 'DBI';
 requires 'DBD::SQLite', 1.25;
+requires 'DBD::mysql';
 requires 'Digest::MD5';
 requires 'DBIx::Sunny';
 
