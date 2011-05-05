@@ -13,27 +13,14 @@ our $VERSION = 0.01;
 
 my $_on_connect = sub {
     my $connect = shift;
-    my $dsn = $connect->connect_info->[0];
-    if ($dsn =~ /^(?i:dbi):SQLite:/) {
-        $connect->do(<<EOF);
+    $connect->do(<<EOF);
 CREATE TABLE IF NOT EXISTS entries (
     id VARCHAR(255) NOT NULL PRIMARY KEY,
     nick VARCHAR(255) NOT NULL,
     body TEXT,
     ctime DATETIME NOT NULL
-)
+) /*! ENGINE=InnoDB DEFAULT CHARSET=utf8 */
 EOF
-    }
-    else {
-        $connect->do(<<EOF);
-CREATE TABLE IF NOT EXISTS entries (
-    id VARCHAR(255) NOT NULL PRIMARY KEY,
-    nick VARCHAR(255) NOT NULL,
-    body TEXT,
-    ctime DATETIME NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
-EOF
-    }
     $connect->do(<<EOF);
 CREATE INDEX IF NOT EXISTS index_ctime ON entries ( ctime )
 EOF
