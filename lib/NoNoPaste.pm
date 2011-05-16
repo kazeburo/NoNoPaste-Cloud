@@ -6,8 +6,6 @@ use Path::Class;
 use File::HomeDir;
 use Digest::SHA;
 use NoNoPaste::Data;
-use DateTime;
-use DateTime::Format::Strptime;
 
 our $VERSION = 0.01;
 
@@ -27,10 +25,6 @@ EOF
     return;
 };
 
-my $DTFMT = DateTime::Format::Strptime->new(
-    time_zone => 'UTC',
-    pattern   => '%Y-%m-%d %H:%M:%S',
-);
 
 sub data {
     my $self = shift;
@@ -56,21 +50,12 @@ sub add_entry {
     $nick = 'anonymouse' if ! defined $nick;
     my $id = substr Digest::SHA::sha1_hex($$ . join("\0", @_) . rand(1000) ), 0, 16;
 
-    my $datetime = DateTime->now( time_zone=>'UTC' ); #XXX
     my $row = $self->data->add_entry(
         id => $id,
         nick => $nick,
         body => $body,
-        datetime => $DTFMT->format_datetime($datetime),
     );
     return ( $row ) ? $id : 0;
-}
-
-sub fixdt {
-    my $date = shift;
-    my $dt = $DTFMT->parse_datetime($date);
-    $dt->set_time_zone("Asia/Tokyo"); #XXX
-    $DTFMT->format_datetime($dt);
 }
 
 sub entry_list {
@@ -81,8 +66,6 @@ sub entry_list {
    my $next;
    $next = pop @$rows if @$rows > 10;
 
-   $_->{ctime} = fixdt($_->{ctime}) for @$rows;
-   
    return $rows, $next;
 }
 
@@ -91,7 +74,6 @@ sub retrieve_entry {
    my $id = shift;
    my $row = $self->data->retrieve_entry( id => $id );
    return unless $row;
-   $row->{ctime} = fixdt($row->{ctime});
    $row;
 }
 
@@ -197,7 +179,7 @@ $(function() {
 <pre class="prettyprint">
 <: $entry.body :>
 </pre>
-<div class="entry_meta"><a href="<: $c.req.uri_for('/entry/' ~ $entry.id ~ '/raw') :>">raw</a> / <a href="<: $c.req.uri_for('/entry/' ~ $entry.id) :>" class="date"><: $entry.ctime :></a> / <span class="nick"><: $entry.nick :></span></div>
+<div class="entry_meta"><a href="<: $c.req.uri_for('/entry/' ~ $entry.id ~ '/raw') :>">raw</a> / <a href="<: $c.req.uri_for('/entry/' ~ $entry.id) :>" class="date"><: $entry.ctime.strftime("%Y-%m-%d %H:%M:%S") :></a> / <span class="nick"><: $entry.nick :></span></div>
 </div>
 : }
 
@@ -236,7 +218,7 @@ $(function() {
 <pre class="prettyprint">
 <: $entry.body :>
 </pre>
-<div class="entry_meta"><a href="<: $c.req.uri_for('/entry/' ~ $entry.id ~ '/raw') :>">raw</a> / <a href="<: $c.req.uri_for('/entry/' ~ $entry.id) :>" class="date"><: $entry.ctime :></a> / <span class="nick"><: $entry.nick :></span></div>
+<div class="entry_meta"><a href="<: $c.req.uri_for('/entry/' ~ $entry.id ~ '/raw') :>">raw</a> / <a href="<: $c.req.uri_for('/entry/' ~ $entry.id) :>" class="date"><: $entry.ctime.strftime("%Y-%m-%d %H:%M:%S") :></a> / <span class="nick"><: $entry.nick :></span></div>
 </div>
 : } # content
 
